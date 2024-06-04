@@ -3,6 +3,32 @@ package com.github.bitfexl.webproxy.processing;
 import java.nio.charset.StandardCharsets;
 
 public interface Body<T> {
+    static Body<byte[]> ofBytes(byte[] rawBody) {
+        return new Body<>() {
+            private byte[] body = rawBody;
+
+            @Override
+            public Class<byte[]> getParsedType() {
+                return byte[].class;
+            }
+
+            @Override
+            public byte[] getParsed() {
+                return body;
+            }
+
+            @Override
+            public byte[] getRaw() {
+                return body;
+            }
+
+            @Override
+            public void setRaw(byte[] newBody) {
+                body = newBody;
+            }
+        };
+    }
+
     /**
      * Get the parsed body type, may be of any type, but common types should be documented here.
      * @return The type which will be returned by getParsed().

@@ -1,7 +1,11 @@
 package com.github.bitfexl.webproxy;
 
+import com.github.bitfexl.webproxy.processing.Body;
+import com.github.bitfexl.webproxy.processing.BodyParser;
+import com.github.bitfexl.webproxy.processing.Request;
 import com.sun.net.httpserver.HttpExchange;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.regex.Pattern;
 
@@ -11,7 +15,7 @@ public class RequestExtractorImpl implements RequestExtractor {
     // https://proxy.example.com/proxy_1234/https/example.com/80/index.html
 
     @Override
-    public RequestDetails extract(HttpExchange exchange) {
+    public Request extract(HttpExchange exchange, BodyParser<?> bodyParser) throws IOException {
         final URI uri = exchange.getRequestURI();
         if (uri.getRawPath() == null) {
             throw new NullPointerException("URI path not present.");
@@ -37,12 +41,23 @@ public class RequestExtractorImpl implements RequestExtractor {
         }
         final String path = "/" + (pathParts.length == 6 ? pathParts[5] : rawPath.endsWith("/") ? "/" : "");
 
-        return new RequestDetails(
+
+        final RequestDetails requestDetails = new RequestDetails(
                 scheme,
                 hostName,
                 port,
                 path,
                 exchange
         );
+
+        final Request request = new Request(requestDetails);
+
+        // todo: parse headers
+
+        final byte[] rawBody = exchange.getRequestBody().readAllBytes();
+        final Body<?> body = bodyParser.tryParse(request, rawBody);
+        request.setBody(body == null ? Body.ofBytes(rawBody) : body);
+
+        return request;
     }
 }

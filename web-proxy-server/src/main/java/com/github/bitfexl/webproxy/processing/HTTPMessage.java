@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class HTTPMessage {
+    @Getter
     private final Map<String, List<String>> headers = new HashMap<>();
 
     @Getter
